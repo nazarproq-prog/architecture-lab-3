@@ -1,21 +1,19 @@
 # Decision log
 
-Для кожної суттєвої зміни скопіюйте секцію нижче. Обсяг одного рішення: 80–120 слів.
+## Decision 1: Централізація мапінгу статусів оплати у модулі Payments
 
-## Decision N: коротка назва
+**Problem:** У стартовому коді перетворення статусів Stripe дублювалося в кількох різних модулях (`Orders`, `Reports`, `Notifications`).
 
-**Problem:**
+**Evidence:** `src/orders/createOrder.ts:28`, `src/reports/salesReport.ts:19`.
 
-**Evidence:**
+**Decision:** Створити єдину функцію `normalizePaymentStatus` у `src/payments/index.ts`, яка переводить відповіді провайдера у системні статуси (`paid`, `processing`, `failed`).
 
-**Decision:**
+**Why:** Забезпечує Принцип приховання інформації (Information Hiding). Інші модулі більше не залежать від форматів чи назв статусів конкретного платіжного провайдера.
 
-**Why:**
+**Alternative:** Винести мапінг у спільний модуль `src/shared`.
 
-**Alternative:**
+**Why rejected:** Shared-код не повинен містити специфічної логіки окремих зовнішніх сервісів чи платіжних провайдерів.
 
-**Why rejected:**
+**Trade-off:** З'являється проміжний крок нормалізації статусів у модулі `Payments`, зате повністю усувається дублювання у викликаючих модулях.
 
-**Trade-off:**
-
-**Verification:**
+**Verification:** Нові unit-тести в `tests/paymentNormalization.test.ts` перевіряють нормалізацію для статусів `paid`, `processing`, `failed` та невідомих відповідей.
